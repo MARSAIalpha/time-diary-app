@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>日记编辑器 - 时光日记</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .editor-container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .form-input {
+            background: rgba(255, 255, 255, 0.8);
+            border: 2px solid rgba(59, 130, 246, 0.2);
+            transition: all 0.3s ease;
+        }
+        
+        .form-input:focus {
+            background: rgba(255, 255, 255, 1);
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+        
+        .mood-btn {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            border: 3px solid transparent;
+            background: rgba(255, 255, 255, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .mood-btn:hover {
+            transform: scale(1.1);
+            background: rgba(255, 255, 255, 1);
+        }
+        
+        .mood-btn.selected {
+            border-color: #3b82f6;
+            background: rgba(59, 130, 246, 0.1);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+        }
+        
+        .toolbar-btn {
+            padding: 0.5rem;
+            border-radius: 0.375rem;
+            background: rgba(255, 255, 255, 0.8);
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .toolbar-btn:hover {
+            background: rgba(59, 130, 246, 0.1);
+            border-color: #3b82f6;
+        }
+        
+        .toolbar-btn.active {
+            background: #3b82f6;
+            color: white;
+            border-color: #3b82f6;
+        }
+        
+        .image-upload-area {
+            border: 2px dashed rgba(59, 130, 246, 0.3);
+            background: rgba(255, 255, 255, 0.5);
+            transition: all 0.3s ease;
+        }
+        
+        .image-upload-area:hover {
+            border-color: #3b82f6;
+            background: rgba(59, 130, 246, 0.05);
+        }
+        
+        .image-upload-area.dragover {
+            border-color: #3b82f6;
+            background: rgba(59, 130, 246, 0.1);
+            transform: scale(1.02);
+        }
+        
+        .nav-link {
+            position: relative;
+            transition: all 0.3s ease;
+        }
+        
+        .nav-link:hover {
+            transform: translateY(-2px);
+        }
+        
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: -4px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: #3b82f6;
+            transition: width 0.3s ease;
+        }
+        
+        .nav-link:hover::after {
+            width: 100%;
+        }
+        
+        .hero-section {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.9), rgba(118, 75, 162, 0.9));
+            backdrop-filter: blur(10px);
+        }
+        
+        .image-gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 1rem;
+        }
+        
+        .image-item {
+            position: relative;
+            aspect-ratio: 1;
+            border-radius: 0.5rem;
+            overflow: hidden;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .image-item:hover {
+            transform: scale(1.05);
+        }
+        
+        .image-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .image-item .delete-btn {
+            position: absolute;
+            top: 4px;
+            right: 4px;
+            width: 24px;
+            height: 24px;
+            background: rgba(239, 68, 68, 0.9);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .image-item:hover .delete-btn {
+            opacity: 1;
+        }
+        
+        .word-count {
+            position: absolute;
+            bottom: 0.5rem;
+            right: 0.5rem;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            font-size: 0.75rem;
+        }
+        
+        .save-indicator {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            background: rgba(34, 197, 94, 0.9);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            font-size: 0.875rem;
+            opacity: 0;
+            transform: translateY(-10px);
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+        
+        .save-indicator.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        .mobile-menu {
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+        
+        .mobile-menu a {
+            color: #374151 !important;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            border-radius: 0.5rem;
+            margin: 0.25rem 0;
+        }
+        
+        .mobile-menu a:hover {
+            background: rgba(59, 130, 246, 0.1);
+            color: #3b82f6 !important;
+            transform: translateX(4px);
+        }
+        
+        .floating-action-btn {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 20px rgba(59, 130, 246, 0.4);
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+        
+        .floating-action-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 25px rgba(59, 130, 246, 0.6);
+        }
+        
+        @media (max-width: 768px) {
+            .editor-container {
+                margin: 1rem;
+                padding: 1.5rem;
+            }
+            
+            .mood-btn {
+                width: 40px;
+                height: 40px;
+                font-size: 1.25rem;
+            }
+            
+            .floating-action-btn {
+                bottom: 1rem;
+                right: 1rem;
+                width: 50px;
+                height: 50px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 导航栏 -->
+    <nav class="bg-white bg-opacity-20 backdrop-filter backdrop-blur-lg border-b border-white border-opacity-20 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center space-x-2">
+                    <div class="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+                        <span class="text-white font-bold text-sm">时</span>
+                    </div>
+                    <span class="text-white font-bold text-xl">时光日记</span>
+                </div>
+                
+                <div class="hidden md:flex items-center space-x-8">
+                    <a href="index.html" class="nav-link text-white font-medium">时间轴</a>
+                    <a href="calendar.html" class="nav-link text-white font-medium">日历</a>
+                    <a href="editor.html" class="nav-link text-white font-medium">写日记</a>
+                    <a href="summary.html" class="nav-link text-white font-medium">AI周记</a>
+                </div>
+                
+                <div class="md:hidden relative">
+                    <button class="text-white p-2" onclick="toggleMobileMenu()">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- 移动端菜单 -->
+            <div id="mobile-menu" class="md:hidden hidden mobile-menu border-t border-white border-opacity-20 absolute top-full left-0 right-0 z-40">
+                <div class="px-4 py-3">
+                    <div class="grid grid-cols-2 gap-2">
+                        <a href="index.html" class="block px-4 py-3 text-center font-medium text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200">
+                            <div class="text-lg mb-1">📚</div>
+                            <div class="text-sm">时间轴</div>
+                        </a>
+                        <a href="calendar.html" class="block px-4 py-3 text-center font-medium text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200">
+                            <div class="text-lg mb-1">📅</div>
+                            <div class="text-sm">日历</div>
+                        </a>
+                        <a href="editor.html" class="block px-4 py-3 text-center font-medium text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200">
+                            <div class="text-lg mb-1">✍️</div>
+                            <div class="text-sm">写日记</div>
+                        </a>
+                        <a href="summary.html" class="block px-4 py-3 text-center font-medium text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200">
+                            <div class="text-lg mb-1">🤖</div>
+                            <div class="text-sm">AI周记</div>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero区域 - 图片图库 -->
+    <section class="hero-section py-8">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-6">
+                <h1 class="text-3xl font-bold text-white mb-2">日记编辑器</h1>
+                <p class="text-white text-opacity-75">记录今天的想法和感受</p>
+            </div>
+            
+            <!-- 图片图库 -->
+            <div id="editor-images-container" class="bg-white bg-opacity-10 backdrop-filter backdrop-blur-lg rounded-xl p-4 border border-white border-opacity-20 mb-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-semibold text-white">图片图库</h3>
+                    <div class="flex items-center space-x-2">
+                        <span class="text-sm text-white text-opacity-75" id="image-count">0 张图片</span>
+                        <button onclick="document.getElementById('image-input').click()" class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors">
+                            添加图片
+                        </button>
+                    </div>
+                </div>
+                
+                <div id="images-container" class="image-gallery">
+                    <!-- 图片将通过JavaScript动态生成 -->
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 主要内容 -->
+    <main class="py-8">
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="editor-container rounded-xl p-8">
+                
+                <!-- 统计信息 -->
+                <div class="grid grid-cols-3 gap-4 mb-6 p-4 bg-gray-50 rounded-lg">
+                    <div class="text-center">
+                        <div class="text-2xl font-bold text-blue-600" id="editor-word-count">0</div>
+                        <div class="text-xs text-gray-600">字数</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-2xl font-bold text-green-600" id="editor-image-count">0</div>
+                        <div class="text-xs text-gray-600">图片</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-2xl font-bold text-purple-600" id="editor-tag-count">0</div>
+                        <div class="text-xs text-gray-600">标签</div>
+                    </div>
+                </div>
+                
+                <!-- 基本信息 -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">日期</label>
+                        <input type="date" id="diary-date" class="form-input w-full px-3 py-2 rounded-lg text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">时间</label>
+                        <input type="time" id="diary-time" class="form-input w-full px-3 py-2 rounded-lg text-sm">
+                    </div>
+                </div>
+                
+                <!-- 标题 -->
+                <div class="mb-8">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">标题</label>
+                    <input type="text" id="diary-title" placeholder="给你的日记起个标题..." class="form-input w-full px-4 py-3 rounded-lg text-xl font-semibold">
+                </div>
+                
+                <!-- 心情选择 -->
+                <div class="mb-8">
+                    <label class="block text-sm font-medium text-gray-700 mb-4">今天的心情</label>
+                    <div class="flex flex-wrap gap-4">
+                        <button class="mood-btn" data-mood="happy" onclick="selectMood('happy')" title="开心">😊</button>
+                        <button class="mood-btn" data-mood="sad" onclick="selectMood('sad')" title="难过">😢</button>
+                        <button class="mood-btn" data-mood="angry" onclick="selectMood('angry')" title="生气">😠</button>
+                        <button class="mood-btn" data-mood="excited" onclick="selectMood('excited')" title="兴奋">🤩</button>
+                        <button class="mood-btn" data-mood="calm" onclick="selectMood('calm')" title="平静">😌</button>
+                        <button class="mood-btn" data-mood="tired" onclick="selectMood('tired')" title="疲倦">😴</button>
+                    </div>
+                </div>
+                
+                <!-- 内容编辑器 -->
+                <div class="mb-8">
+                    <label class="block text-sm font-medium text-gray-700 mb-4">内容</label>
+                    
+                    <!-- 工具栏 -->
+                    <div class="flex flex-wrap gap-2 mb-4 p-3 bg-gray-50 rounded-lg">
+                        <button class="toolbar-btn" onclick="formatText('bold')" title="加粗">
+                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M3 4a1 1 0 011-1h6a4.5 4.5 0 013.5 7.5A4.5 4.5 0 0110 18H4a1 1 0 01-1-1V4zm2 1v4h5a2.5 2.5 0 000-5H5zm0 6v4h5a2.5 2.5 0 000-5H5z" clip-rule="evenodd"></path>
+                            </svg>
+                        </button>
+                        <button class="toolbar-btn" onclick="formatText('italic')" title="斜体">
+                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8 7a1 1 0 012 0v1h1a1 1 0 110 2H9v1a1 1 0 11-2 0V9H6a1 1 0 110-2h1V7z" clip-rule="evenodd"></path>
+                            </svg>
+                        </button>
+                        <button class="toolbar-btn" onclick="formatText('insertUnorderedList')" title="列表">
+                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd"></path>
+                            </svg>
+                        </button>
+                        <div class="border-l border-gray-300 mx-2"></div>
+                        <select class="toolbar-btn" onchange="formatText('fontSize', this.value)" title="字体大小">
+                            <option value="1">小</option>
+                            <option value="3" selected>正常</option>
+                            <option value="5">大</option>
+                            <option value="7">特大</option>
+                        </select>
+                    </div>
+                    
+                    <!-- 编辑区域 -->
+                    <div class="relative">
+                        <textarea id="diary-content" placeholder="今天发生了什么有趣的事情呢？记录下来吧..." class="form-input w-full px-4 py-4 rounded-lg resize-none" rows="12"></textarea>
+                        <div class="word-count" id="word-count">0 字</div>
+                    </div>
+                </div>
+                
+                <!-- 标签管理 -->
+                <div class="mb-8">
+                    <label class="block text-sm font-medium text-gray-700 mb-4">标签</label>
+                    <div class="flex flex-wrap gap-2 mb-3" id="tags-container">
+                        <!-- 标签将通过JavaScript动态生成 -->
+                    </div>
+                    <div class="flex gap-2">
+                        <input type="text" id="tag-input" placeholder="添加标签..." class="form-input flex-1 px-4 py-2 rounded-lg" maxlength="20">
+                        <button onclick="addTag()" class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors">添加</button>
+                    </div>
+                    <p class="text-sm text-gray-500 mt-2">最多可添加5个标签，每个标签不超过20个字符</p>
+                </div>
+                
+                <!-- 操作按钮 -->
+                <div class="flex flex-wrap gap-4">
+                    <button onclick="saveDiary()" class="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors font-medium">
+                        保存日记
+                    </button>
+                    <button onclick="deleteDiary()" class="px-6 py-3 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors font-medium">
+                        删除日记
+                    </button>
+                    <button onclick="window.location.href='index.html'" class="px-6 py-3 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors font-medium">
+                        返回列表
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- 隐藏的文件输入 -->
+    <input type="file" id="image-input" accept="image/*" style="display: none;" onchange="handleImageUpload(event)">
+    
+    <!-- 保存指示器 -->
+    <div id="save-indicator" class="save-indicator">
+        已自动保存
+    </div>
+
+    <!-- 页脚 -->
+    <footer class="bg-black bg-opacity-20 backdrop-filter backdrop-blur-lg border-t border-white border-opacity-20 py-8 mt-16">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <p class="text-white text-opacity-75">© 2025 时光日记. 记录生活，珍藏美好.</p>
+        </div>
+    </footer>
+
+    <script src="main.js"></script>
+    <script>
+        let autoSaveTimer;
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            // 设置默认日期和时间
+            const now = new Date();
+            document.getElementById('diary-date').value = now.toISOString().split('T')[0];
+            document.getElementById('diary-time').value = now.toTimeString().substr(0, 5);
+            
+            // 初始化统计数据
+            updateEditorStats();
+            
+            // 字数统计
+            const contentTextarea = document.getElementById('diary-content');
+            const wordCountElement = document.getElementById('word-count');
+            
+            contentTextarea.addEventListener('input', function() {
+                const wordCount = this.value.length;
+                wordCountElement.textContent = `${wordCount} 字`;
+                
+                // 更新编辑器统计
+                updateEditorStats();
+                
+                // 自动保存
+                clearTimeout(autoSaveTimer);
+                autoSaveTimer = setTimeout(() => {
+                    if (timeDiary && timeDiary.currentDiary) {
+                        timeDiary.saveDiary();
+                        showSaveIndicator();
+                    }
+                }, 30000);
+            });
+            
+            // 标签输入回车支持
+            document.getElementById('tag-input').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    addTag();
+                }
+            });
+            
+            // 页面加载动画
+            anime({
+                targets: '.editor-container',
+                opacity: [0, 1],
+                translateY: [30, 0],
+                duration: 800,
+                easing: 'easeOutQuart',
+                delay: 200
+            });
+            
+            // 工具栏按钮动画
+            anime({
+                targets: '.toolbar-btn',
+                scale: [0.8, 1],
+                opacity: [0, 1],
+                duration: 600,
+                delay: anime.stagger(50, {start: 400}),
+                easing: 'easeOutQuart'
+            });
+            
+            // 心情按钮动画
+            anime({
+                targets: '.mood-btn',
+                scale: [0.8, 1],
+                opacity: [0, 1],
+                duration: 600,
+                delay: anime.stagger(100, {start: 600}),
+                easing: 'easeOutQuart'
+            });
+        });
+        
+        function updateEditorStats() {
+            if (!timeDiary || !timeDiary.currentDiary) return;
+            
+            const content = document.getElementById('diary-content').value;
+            const images = timeDiary.currentDiary.images || [];
+            const tags = timeDiary.currentDiary.tags || [];
+            
+            // 更新字数统计
+            const wordCountElement = document.getElementById('editor-word-count');
+            if (wordCountElement) {
+                wordCountElement.textContent = content.length;
+            }
+            
+            // 更新图片统计
+            const imageCountElement = document.getElementById('editor-image-count');
+            if (imageCountElement) {
+                imageCountElement.textContent = images.length;
+            }
+            
+            // 更新标签统计
+            const tagCountElement = document.getElementById('editor-tag-count');
+            if (tagCountElement) {
+                tagCountElement.textContent = tags.length;
+            }
+        }
+        
+        function formatText(command, value = null) {
+            // 由于我们使用textarea而不是contenteditable，这里实现文本格式化
+            const textarea = document.getElementById('diary-content');
+            const start = textarea.selectionStart;
+            const end = textarea.selectionEnd;
+            const selectedText = textarea.value.substring(start, end);
+            
+            let formattedText = selectedText;
+            
+            switch(command) {
+                case 'bold':
+                    formattedText = `**${selectedText}**`;
+                    break;
+                case 'italic':
+                    formattedText = `*${selectedText}*`;
+                    break;
+                case 'insertUnorderedList':
+                    formattedText = `- ${selectedText}`;
+                    break;
+                case 'fontSize':
+                    // 简单的字体大小标记
+                    const sizes = {'1': '小', '3': '正常', '5': '大', '7': '特大'};
+                    formattedText = `[${sizes[value]}]${selectedText}[/${sizes[value]}]`;
+                    break;
+            }
+            
+            textarea.value = textarea.value.substring(0, start) + formattedText + textarea.value.substring(end);
+            textarea.focus();
+            textarea.setSelectionRange(start, start + formattedText.length);
+            
+            // 更新字数统计
+            const wordCount = textarea.value.length;
+            document.getElementById('word-count').textContent = `${wordCount} 字`;
+            
+            // 更新编辑器统计
+            updateEditorStats();
+        }
+        
+        function showSaveIndicator() {
+            const indicator = document.getElementById('save-indicator');
+            indicator.classList.add('show');
+            setTimeout(() => {
+                indicator.classList.remove('show');
+            }, 2000);
+        }
+        
+        function previewImage(src) {
+            const modal = document.createElement('div');
+            modal.className = 'fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4';
+            modal.innerHTML = `
+                <div class="relative max-w-4xl max-h-full">
+                    <img src="${src}" class="max-w-full max-h-full object-contain rounded-lg">
+                    <button onclick="this.parentElement.parentElement.remove()" class="absolute top-4 right-4 text-white bg-black bg-opacity-50 rounded-full w-10 h-10 flex items-center justify-center hover:bg-opacity-75">
+                        ×
+                    </button>
+                </div>
+            `;
+            document.body.appendChild(modal);
+            
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    modal.remove();
+                }
+            });
+        }
+        
+        // 拖拽上传支持
+        const uploadArea = document.getElementById('editor-images-container');
+        
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            uploadArea.addEventListener(eventName, preventDefaults, false);
+        });
+        
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+        
+        ['dragenter', 'dragover'].forEach(eventName => {
+            uploadArea.addEventListener(eventName, highlight, false);
+        });
+        
+        ['dragleave', 'drop'].forEach(eventName => {
+            uploadArea.addEventListener(eventName, unhighlight, false);
+        });
+        
+        function highlight(e) {
+            uploadArea.classList.add('dragover');
+        }
+        
+        function unhighlight(e) {
+            uploadArea.classList.remove('dragover');
+        }
+        
+        uploadArea.addEventListener('drop', handleDrop, false);
+        
+        function handleDrop(e) {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            
+            [...files].forEach(file => {
+                if (file.type.startsWith('image/')) {
+                    handleImageUpload({ target: { files: [file] } });
+                }
+            });
+        }
+    </script>
+</body>
+</html>

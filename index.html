@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>时光日记 - 记录美好生活</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .timeline-container {
+            position: relative;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .timeline-line {
+            position: absolute;
+            left: 50%;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: linear-gradient(to bottom, #3b82f6, #1d4ed8);
+            transform: translateX(-50%);
+            border-radius: 2px;
+        }
+        
+        .timeline-item {
+            position: relative;
+            margin-bottom: 3rem;
+            width: 100%;
+            padding-left: 3rem;
+        }
+        
+        .timeline-right {
+            left: 0;
+            padding-left: 3rem;
+        }
+        
+        .timeline-dot {
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            top: 2rem;
+            left: 2rem;
+            transform: translateX(-50%);
+            z-index: 10;
+            border: 3px solid white;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
+        }
+        
+        .timeline-card {
+            position: relative;
+            backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.9);
+        }
+        
+        .line-clamp-3 {
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        
+        .hero-section {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.9), rgba(118, 75, 162, 0.9));
+            backdrop-filter: blur(10px);
+        }
+        
+        .nav-link {
+            position: relative;
+            transition: all 0.3s ease;
+        }
+        
+        .nav-link:hover {
+            transform: translateY(-2px);
+        }
+        
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: -4px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: #3b82f6;
+            transition: width 0.3s ease;
+        }
+        
+        .nav-link:hover::after {
+            width: 100%;
+        }
+        
+        .floating-add-btn {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 20px rgba(59, 130, 246, 0.4);
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+        
+        .floating-add-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 25px rgba(59, 130, 246, 0.6);
+        }
+        
+        .stats-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        @media (max-width: 768px) {
+            .timeline-line {
+                left: 2rem;
+            }
+            
+            .timeline-item {
+                width: 100%;
+                left: 0 !important;
+                padding-left: 4rem !important;
+                padding-right: 1rem !important;
+            }
+            
+            .timeline-dot {
+                left: 2rem !important;
+                transform: translateX(-50%) !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 导航栏 -->
+    <nav class="bg-white bg-opacity-20 backdrop-filter backdrop-blur-lg border-b border-white border-opacity-20 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center space-x-2">
+                    <div class="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+                        <span class="text-white font-bold text-sm">时</span>
+                    </div>
+                    <span class="text-white font-bold text-xl">时光日记</span>
+                </div>
+                
+                <div class="hidden md:flex items-center space-x-8">
+                    <a href="index.html" class="nav-link text-white font-medium">时间轴</a>
+                    <a href="calendar.html" class="nav-link text-white font-medium">日历</a>
+                    <a href="editor.html" class="nav-link text-white font-medium">写日记</a>
+                    <a href="summary.html" class="nav-link text-white font-medium">AI周记</a>
+                </div>
+                
+                <div class="md:hidden relative">
+                    <button class="text-white p-2" onclick="toggleMobileMenu()">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- 移动端菜单 -->
+            <div id="mobile-menu" class="md:hidden hidden mobile-menu border-t border-white border-opacity-20 absolute top-full left-0 right-0 z-40">
+                <div class="px-4 py-3">
+                    <div class="grid grid-cols-2 gap-2">
+                        <a href="index.html" class="block px-4 py-3 text-center font-medium text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200">
+                            <div class="text-lg mb-1">📚</div>
+                            <div class="text-sm">时间轴</div>
+                        </a>
+                        <a href="calendar.html" class="block px-4 py-3 text-center font-medium text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200">
+                            <div class="text-lg mb-1">📅</div>
+                            <div class="text-sm">日历</div>
+                        </a>
+                        <a href="editor.html" class="block px-4 py-3 text-center font-medium text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200">
+                            <div class="text-lg mb-1">✍️</div>
+                            <div class="text-sm">写日记</div>
+                        </a>
+                        <a href="summary.html" class="block px-4 py-3 text-center font-medium text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200">
+                            <div class="text-lg mb-1">🤖</div>
+                            <div class="text-sm">AI周记</div>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 时光轴区域 - 简化版，只显示时间轴 -->
+    <section class="py-8">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-8">
+                <h1 class="text-4xl md:text-5xl font-bold text-white mb-4">时光轴</h1>
+                <p class="text-xl text-white text-opacity-90">沿着时间的轨迹，回顾每一个珍贵的时刻</p>
+            </div>
+            
+            <div class="timeline-container">
+                <div class="timeline-line"></div>
+                <div id="timeline-container">
+                    <!-- 时间轴内容将通过JavaScript动态生成 -->
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 浮动添加按钮 -->
+    <button class="floating-add-btn" onclick="window.location.href='editor.html'">
+        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+        </svg>
+    </button>
+
+    <!-- 页脚 -->
+    <footer class="bg-black bg-opacity-20 backdrop-filter backdrop-blur-lg border-t border-white border-opacity-20 py-8">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <p class="text-white text-opacity-75">© 2025 时光日记. 记录生活，珍藏美好.</p>
+        </div>
+    </footer>
+
+    <script src="main.js"></script>
+    <script>
+        // 页面加载动画
+        document.addEventListener('DOMContentLoaded', function() {
+            // Hero区域动画
+            anime({
+                targets: '#hero-title',
+                opacity: [0, 1],
+                translateY: [50, 0],
+                duration: 1000,
+                easing: 'easeOutQuart',
+                delay: 300
+            });
+            
+            anime({
+                targets: '#hero-subtitle',
+                opacity: [0, 1],
+                translateY: [30, 0],
+                duration: 1000,
+                easing: 'easeOutQuart',
+                delay: 500
+            });
+            
+            anime({
+                targets: '#stats-grid',
+                opacity: [0, 1],
+                translateY: [30, 0],
+                duration: 1000,
+                easing: 'easeOutQuart',
+                delay: 700
+            });
+            
+            // 统计数字动画
+            setTimeout(() => {
+                updateStats();
+            }, 1000);
+        });
+        
+        // 更新统计数据
+        function updateStats() {
+            if (timeDiary && timeDiary.diaryData) {
+                const totalDiaries = timeDiary.diaryData.length;
+                const thisWeek = getThisWeekDiaries();
+                const totalWords = timeDiary.diaryData.reduce((sum, diary) => sum + diary.content.length, 0);
+                const moodCount = Object.keys(timeDiary.diaryData.reduce((acc, diary) => {
+                    acc[diary.mood] = true;
+                    return acc;
+                }, {})).length;
+                
+                animateNumber('total-diaries', totalDiaries);
+                animateNumber('this-week', thisWeek);
+                animateNumber('total-words', totalWords);
+                animateNumber('mood-count', moodCount);
+            }
+        }
+        
+        function animateNumber(elementId, targetNumber) {
+            const element = document.getElementById(elementId);
+            if (!element) return;
+            
+            anime({
+                targets: { value: 0 },
+                value: targetNumber,
+                duration: 2000,
+                easing: 'easeOutQuart',
+                update: function(anim) {
+                    element.textContent = Math.round(anim.animatables[0].target.value);
+                }
+            });
+        }
+        
+        function getThisWeekDiaries() {
+            const now = new Date();
+            const startOfWeek = new Date(now.setDate(now.getDate() - now.getDay()));
+            startOfWeek.setHours(0, 0, 0, 0);
+            
+            return timeDiary.diaryData.filter(diary => {
+                const diaryDate = new Date(diary.date);
+                return diaryDate >= startOfWeek;
+            }).length;
+        }
+        
+        // 滚动动画
+        window.addEventListener('scroll', function() {
+            const scrolled = window.pageYOffset;
+            const parallax = document.querySelector('.hero-section');
+            if (parallax) {
+                const speed = scrolled * 0.5;
+                parallax.style.transform = `translateY(${speed}px)`;
+            }
+        });
+    </script>
+</body>
+</html>
