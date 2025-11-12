@@ -5,8 +5,31 @@
   "name": "时光日记",
   "orientation": "any",
   "scope": "/",
-  "short_name": "marsalpha.github",
+  "short_name": "时光日记",          // ← 改短一点，显示在图标下方
   "start_url": "/",
   "theme_color": "#764ba2",
-  "description": "记录生活，珍藏美好"
+  "description": "记录生活，珍藏美好",
+
+  "id": "com.marsalpha.timediary",   // ← 唯一 ID，必填
+
+  "icons": [                         // ← 图标数组，必填
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ],
+
+  "screenshots": [                   // ← 商店截图，可后面再补
+    {
+      "src": "screenshots/1.png",
+      "sizes": "390x844",
+      "type": "image/png"
+    }
+  ]
 }
