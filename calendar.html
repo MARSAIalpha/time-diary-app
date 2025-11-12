@@ -2,7 +2,15 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <link rel="manifest" href="manifest.json">
+   <!-- PWA 必备 -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#764ba2">
+<script>
+  // 注册 Service Worker
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js');
+  }
+</script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>日历视图 - 时光日记</title>
     <script src="https://cdn.tailwindcss.com"></script>
