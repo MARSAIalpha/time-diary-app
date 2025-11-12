@@ -1,28 +1,21 @@
-{\rtf1\ansi\ansicpg936\cocoartf2867
-\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fswiss\fcharset0 Helvetica;}
-{\colortbl;\red255\green255\blue255;}
-{\*\expandedcolortbl;;}
-\paperw11900\paperh16840\margl1440\margr1440\vieww11520\viewh8400\viewkind0
-\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
-
-\f0\fs24 \cf0 \{\
-  "name": "\uc0\u26102 \u20809 \u26085 \u35760 ",\
-  "short_name": "\uc0\u26102 \u20809 \u26085 \u35760 ",\
-  "description": "\uc0\u35760 \u24405 \u29983 \u27963 \u65292 \u29645 \u34255 \u32654 \u22909 ",\
-  "start_url": "/index.html",\
-  "display": "standalone",\
-  "background_color": "#667eea",\
-  "theme_color": "#764ba2",\
-  "icons": [\
-    \{\
-      "src": "icons/icon-192.png",\
-      "sizes": "192x192",\
-      "type": "image/png"\
-    \},\
-    \{\
-      "src": "icons/icon-512.png",\
-      "sizes": "512x512",\
-      "type": "image/png"\
-    \}\
-  ]\
-\}}
+{
+  "name": "时光日记",
+  "short_name": "时光日记",
+  "description": "记录生活，珍藏美好",
+  "start_url": "/index.html",
+  "display": "standalone",
+  "background_color": "#667eea",
+  "theme_color": "#764ba2",
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
